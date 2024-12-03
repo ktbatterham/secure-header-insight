@@ -28,13 +28,13 @@ const MOCK_HEADERS = [
 ];
 
 const MOCK_TECHNOLOGIES = [
-  { name: "Nginx", category: "server", version: "1.18.0" },
-  { name: "React", category: "frontend", version: "18.2.0" },
-  { name: "Cloudflare", category: "security" },
-  { name: "TypeScript", category: "frontend", version: "4.9.5" },
-  { name: "Let's Encrypt", category: "security" },
-  { name: "Webpack", category: "frontend", version: "5.75.0" },
-  { name: "Node.js", category: "server", version: "16.x" },
+  { name: "Nginx", category: "server" as const, version: "1.18.0" },
+  { name: "React", category: "frontend" as const, version: "18.2.0" },
+  { name: "Cloudflare", category: "security" as const },
+  { name: "TypeScript", category: "frontend" as const, version: "4.9.5" },
+  { name: "Let's Encrypt", category: "security" as const },
+  { name: "Webpack", category: "frontend" as const, version: "5.75.0" },
+  { name: "Node.js", category: "server" as const, version: "16.x" },
 ];
 
 const Index = () => {
