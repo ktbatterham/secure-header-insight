@@ -2,6 +2,7 @@ import { useState } from "react";
 import { UrlForm } from "@/components/UrlForm";
 import { SecurityGrade } from "@/components/SecurityGrade";
 import { HeadersTable } from "@/components/HeadersTable";
+import { TechnologyStack } from "@/components/TechnologyStack";
 
 const MOCK_HEADERS = [
   {
@@ -26,6 +27,16 @@ const MOCK_HEADERS = [
   },
 ];
 
+const MOCK_TECHNOLOGIES = [
+  { name: "Nginx", category: "server", version: "1.18.0" },
+  { name: "React", category: "frontend", version: "18.2.0" },
+  { name: "Cloudflare", category: "security" },
+  { name: "TypeScript", category: "frontend", version: "4.9.5" },
+  { name: "Let's Encrypt", category: "security" },
+  { name: "Webpack", category: "frontend", version: "5.75.0" },
+  { name: "Node.js", category: "server", version: "16.x" },
+];
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
@@ -46,7 +57,7 @@ const Index = () => {
             Website Security Scanner
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Analyze your website's security headers and get detailed recommendations
+            Analyze your website's security headers and technology stack to get detailed recommendations
             for improving your security posture.
           </p>
         </div>
@@ -61,9 +72,17 @@ const Index = () => {
               <SecurityGrade grade="B" />
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-2xl font-semibold mb-4">Security Headers</h2>
-              <HeadersTable headers={MOCK_HEADERS} />
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-8">
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <h2 className="text-2xl font-semibold mb-4">Security Headers</h2>
+                  <HeadersTable headers={MOCK_HEADERS} />
+                </div>
+              </div>
+              
+              <div>
+                <TechnologyStack technologies={MOCK_TECHNOLOGIES} />
+              </div>
             </div>
           </div>
         )}
