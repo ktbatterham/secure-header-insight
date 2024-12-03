@@ -59,17 +59,17 @@ export const CookieAnalysis = ({ cookies }: CookieAnalysisProps) => {
               <TableRow key={cookie.name}>
                 <TableCell className="font-medium">{cookie.name}</TableCell>
                 <TableCell>
-                  <Badge variant={cookie.secure ? "success" : "destructive"}>
+                  <Badge variant={cookie.secure ? "default" : "destructive"}>
                     {cookie.secure ? "Yes" : "No"}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={cookie.httpOnly ? "success" : "destructive"}>
+                  <Badge variant={cookie.httpOnly ? "default" : "destructive"}>
                     {cookie.httpOnly ? "Yes" : "No"}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={cookie.sameSite === "Strict" || cookie.sameSite === "Lax" ? "success" : "destructive"}>
+                  <Badge variant={cookie.sameSite === "Strict" || cookie.sameSite === "Lax" ? "default" : "destructive"}>
                     {cookie.sameSite || "Not Set"}
                   </Badge>
                 </TableCell>

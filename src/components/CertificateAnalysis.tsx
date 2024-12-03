@@ -42,7 +42,7 @@ export const CertificateAnalysis = ({ certInfo }: CertificateAnalysisProps) => {
         <div className="grid gap-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Status</span>
-            <Badge variant={certInfo.valid ? "success" : "destructive"}>
+            <Badge variant={certInfo.valid ? "default" : "destructive"}>
               {certInfo.valid ? "Valid" : "Invalid"}
             </Badge>
           </div>
