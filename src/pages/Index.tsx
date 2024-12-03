@@ -3,6 +3,8 @@ import { UrlForm } from "@/components/UrlForm";
 import { SecurityGrade } from "@/components/SecurityGrade";
 import { HeadersTable } from "@/components/HeadersTable";
 import { TechnologyStack } from "@/components/TechnologyStack";
+import { CertificateAnalysis } from "@/components/CertificateAnalysis";
+import { CookieAnalysis } from "@/components/CookieAnalysis";
 
 const MOCK_HEADERS = [
   {
@@ -37,6 +39,32 @@ const MOCK_TECHNOLOGIES = [
   { name: "Node.js", category: "server" as const, version: "16.x" },
 ];
 
+const MOCK_CERTIFICATE = {
+  valid: true,
+  issuer: "Let's Encrypt Authority X3",
+  expirationDate: "2024-06-15",
+  daysUntilExpiration: 120,
+  protocol: "TLS 1.3",
+  strength: "strong" as const,
+};
+
+const MOCK_COOKIES = [
+  {
+    name: "session",
+    secure: true,
+    httpOnly: true,
+    sameSite: "Strict" as const,
+    expires: "2024-12-31",
+  },
+  {
+    name: "preferences",
+    secure: false,
+    httpOnly: false,
+    sameSite: null,
+    expires: null,
+  },
+];
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
@@ -57,7 +85,7 @@ const Index = () => {
             Website Security Scanner
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Analyze your website's security headers and technology stack to get detailed recommendations
+            Analyze your website's security headers, certificates, cookies, and technology stack to get detailed recommendations
             for improving your security posture.
           </p>
         </div>
@@ -72,16 +100,18 @@ const Index = () => {
               <SecurityGrade grade="B" />
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2">
+            <div className="grid gap-8 lg:grid-cols-2">
               <div className="space-y-8">
                 <div className="bg-white p-6 rounded-lg shadow-sm">
                   <h2 className="text-2xl font-semibold mb-4">Security Headers</h2>
                   <HeadersTable headers={MOCK_HEADERS} />
                 </div>
+                <CertificateAnalysis certInfo={MOCK_CERTIFICATE} />
               </div>
               
-              <div>
+              <div className="space-y-8">
                 <TechnologyStack technologies={MOCK_TECHNOLOGIES} />
+                <CookieAnalysis cookies={MOCK_COOKIES} />
               </div>
             </div>
           </div>
