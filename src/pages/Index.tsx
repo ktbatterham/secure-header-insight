@@ -13,6 +13,13 @@ const generateMockData = (url: string) => {
   const isPopularSite = domain.includes('google') || domain.includes('facebook') || domain.includes('amazon');
   const randomDays = Math.floor(Math.random() * 365) + 1;
   
+  console.log('URL Analysis:', {
+    url,
+    isSecure,
+    domain,
+    isPopularSite
+  });
+  
   // Generate security grade based on URL characteristics
   const getSecurityGrade = () => {
     if (isSecure && isPopularSite) return "A+";
@@ -21,7 +28,11 @@ const generateMockData = (url: string) => {
     return "C";
   };
 
+  const securityGrade = getSecurityGrade();
+  console.log('Generated Security Grade:', securityGrade);
+
   return {
+    grade: securityGrade,
     headers: [
       {
         name: "Strict-Transport-Security",
@@ -104,6 +115,7 @@ const Index = () => {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
     const mockData = generateMockData(url);
+    console.log('Generated Analysis Data:', mockData);
     setAnalysisData(mockData);
     setAnalyzed(true);
     setIsLoading(false);
@@ -129,7 +141,7 @@ const Index = () => {
         {analyzed && analysisData && (
           <div className="space-y-8">
             <div className="flex justify-center">
-              <SecurityGrade grade={analysisData.certificate.valid ? "A" : "C"} />
+              <SecurityGrade grade={analysisData.grade} />
             </div>
 
             <div className="grid gap-8 lg:grid-cols-2">
