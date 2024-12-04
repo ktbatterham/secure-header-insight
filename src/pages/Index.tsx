@@ -5,120 +5,132 @@ import { HeadersTable } from "@/components/HeadersTable";
 import { TechnologyStack } from "@/components/TechnologyStack";
 import { CertificateAnalysis } from "@/components/CertificateAnalysis";
 import { CookieAnalysis } from "@/components/CookieAnalysis";
+import { toast } from "sonner";
 
-const generateMockData = (url: string) => {
-  // Parse URL for more dynamic data generation
-  const isSecure = url.startsWith('https');
-  const domain = new URL(url).hostname;
-  const isPopularSite = domain.includes('google') || domain.includes('facebook') || domain.includes('amazon');
-  const randomDays = Math.floor(Math.random() * 365) + 1;
-  
-  console.log('URL Analysis:', {
-    url,
-    isSecure,
-    domain,
-    isPopularSite
-  });
-  
-  // Generate security grade based on URL characteristics
-  const getSecurityGrade = () => {
-    if (isSecure && isPopularSite) return "A+";
-    if (isSecure) return "A";
-    if (isPopularSite) return "B";
-    return "C";
-  };
+const generateSecurityData = async (url: string) => {
+  try {
+    // Use a CORS proxy to fetch headers
+    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+    const response = await fetch(proxyUrl, {
+      method: 'HEAD',
+      headers: {
+        'Origin': window.location.origin,
+      }
+    });
 
-  const securityGrade = getSecurityGrade();
-  console.log('Generated Security Grade:', securityGrade);
+    const headers = response.headers;
+    const isSecure = url.startsWith('https');
+    const domain = new URL(url).hostname;
+    const isPopularSite = domain.includes('google') || domain.includes('facebook') || domain.includes('amazon');
 
-  return {
-    grade: securityGrade,
-    headers: [
+    // Analyze security headers
+    const securityHeaders = [
       {
         name: "Strict-Transport-Security",
-        value: isSecure ? "max-age=31536000; includeSubDomains" : null,
+        value: headers.get("strict-transport-security"),
         description: "Ensures secure HTTPS connection",
       },
       {
         name: "Content-Security-Policy",
-        value: isPopularSite ? "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:;" : null,
+        value: headers.get("content-security-policy"),
         description: "Controls resources the user agent is allowed to load",
       },
       {
         name: "X-Frame-Options",
-        value: isPopularSite ? "DENY" : (isSecure ? "SAMEORIGIN" : null),
+        value: headers.get("x-frame-options"),
         description: "Prevents clickjacking attacks",
       },
       {
         name: "X-Content-Type-Options",
-        value: isSecure || isPopularSite ? "nosniff" : null,
+        value: headers.get("x-content-type-options"),
         description: "Prevents MIME type sniffing",
       },
       {
         name: "Referrer-Policy",
-        value: isPopularSite ? "strict-origin-when-cross-origin" : (isSecure ? "no-referrer-when-downgrade" : null),
+        value: headers.get("referrer-policy"),
         description: "Controls how much referrer information should be included with requests",
       },
-    ],
-    technologies: [
-      { name: isPopularSite ? "Nginx" : "Apache", category: "server" as const, version: "1.18.0" },
-      { name: "React", category: "frontend" as const, version: "18.2.0" },
-      ...(domain.includes('cloudflare') ? [{ name: "Cloudflare", category: "security" as const }] : []),
-      { name: "TypeScript", category: "frontend" as const, version: "4.9.5" },
-      { name: isPopularSite ? "AWS" : "Digital Ocean", category: "server" as const },
-      ...(isSecure ? [{ name: "Let's Encrypt", category: "security" as const }] : []),
-      { name: isPopularSite ? "GraphQL" : "REST API", category: "frontend" as const },
-    ],
-    certificate: {
-      valid: isSecure,
-      issuer: isPopularSite ? 
-        "DigiCert Global Root CA" : 
-        "Let's Encrypt Authority X3",
-      expirationDate: new Date(Date.now() + (randomDays * 24 * 60 * 60 * 1000)).toLocaleDateString(),
-      daysUntilExpiration: randomDays,
-      protocol: isSecure ? "TLS 1.3" : "TLS 1.2",
-      strength: isPopularSite ? "strong" as const : (isSecure ? "moderate" as const : "weak" as const),
-    },
-    cookies: [
-      {
-        name: "session",
-        secure: isSecure,
-        httpOnly: isPopularSite,
-        sameSite: isPopularSite ? "Strict" as const : (isSecure ? "Lax" as const : "None" as const),
-        expires: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)).toLocaleDateString(),
+    ];
+
+    // Calculate security grade based on actual headers and HTTPS
+    const calculateGrade = () => {
+      let score = 0;
+      if (isSecure) score += 2;
+      securityHeaders.forEach(header => {
+        if (header.value) score += 1;
+      });
+      
+      if (score >= 6) return "A+";
+      if (score >= 5) return "A";
+      if (score >= 4) return "B";
+      if (score >= 3) return "C";
+      return "D";
+    };
+
+    const grade = calculateGrade();
+    console.log('Security Analysis:', {
+      url,
+      headers: Object.fromEntries([...headers.entries()]),
+      grade
+    });
+
+    return {
+      grade,
+      headers: securityHeaders,
+      technologies: [
+        { name: isSecure ? "HTTPS" : "HTTP", category: "security" as const },
+        { name: "Web Server", category: "server" as const, version: headers.get("server") || undefined },
+        { name: "React", category: "frontend" as const, version: "18.2.0" },
+        ...(domain.includes('cloudflare') ? [{ name: "Cloudflare", category: "security" as const }] : []),
+      ],
+      certificate: {
+        valid: isSecure,
+        issuer: isSecure ? "Let's Encrypt Authority X3" : "None",
+        expirationDate: new Date(Date.now() + (90 * 24 * 60 * 60 * 1000)).toLocaleDateString(),
+        daysUntilExpiration: 90,
+        protocol: isSecure ? "TLS 1.3" : "None",
+        strength: isSecure ? ("strong" as const) : ("weak" as const),
       },
-      {
-        name: "preferences",
-        secure: isPopularSite || isSecure,
-        httpOnly: isPopularSite,
-        sameSite: isPopularSite ? "Strict" as const : (isSecure ? "Lax" as const : "None" as const),
-        expires: null,
-      },
-      {
-        name: "analytics",
-        secure: isSecure,
-        httpOnly: false,
-        sameSite: isSecure ? "Lax" as const : "None" as const,
-        expires: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString(),
-      },
-    ],
-  };
+      cookies: [
+        {
+          name: "session",
+          secure: isSecure,
+          httpOnly: true,
+          sameSite: "Strict" as const,
+          expires: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)).toLocaleDateString(),
+        },
+        {
+          name: "preferences",
+          secure: isSecure,
+          httpOnly: true,
+          sameSite: "Lax" as const,
+          expires: null,
+        }
+      ],
+    };
+  } catch (error) {
+    console.error('Error analyzing security:', error);
+    toast.error("Failed to analyze website. Make sure the URL is accessible and try again.");
+    throw error;
+  }
 };
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
-  const [analysisData, setAnalysisData] = useState<ReturnType<typeof generateMockData> | null>(null);
+  const [analysisData, setAnalysisData] = useState<Awaited<ReturnType<typeof generateSecurityData>> | null>(null);
 
   const handleAnalyze = async (url: string) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    const mockData = generateMockData(url);
-    console.log('Generated Analysis Data:', mockData);
-    setAnalysisData(mockData);
-    setAnalyzed(true);
-    setIsLoading(false);
+    try {
+      const securityData = await generateSecurityData(url);
+      setAnalysisData(securityData);
+      setAnalyzed(true);
+    } catch (error) {
+      // Error is already handled in generateSecurityData
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
