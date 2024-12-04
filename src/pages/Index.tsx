@@ -7,64 +7,88 @@ import { CertificateAnalysis } from "@/components/CertificateAnalysis";
 import { CookieAnalysis } from "@/components/CookieAnalysis";
 
 const generateMockData = (url: string) => {
-  // Generate different mock data based on URL
+  // Parse URL for more dynamic data generation
   const isSecure = url.startsWith('https');
   const domain = new URL(url).hostname;
+  const isPopularSite = domain.includes('google') || domain.includes('facebook') || domain.includes('amazon');
+  const randomDays = Math.floor(Math.random() * 365) + 1;
   
+  // Generate security grade based on URL characteristics
+  const getSecurityGrade = () => {
+    if (isSecure && isPopularSite) return "A+";
+    if (isSecure) return "A";
+    if (isPopularSite) return "B";
+    return "C";
+  };
+
   return {
     headers: [
       {
         name: "Strict-Transport-Security",
-        value: isSecure ? "max-age=31536000" : null,
+        value: isSecure ? "max-age=31536000; includeSubDomains" : null,
         description: "Ensures secure HTTPS connection",
       },
       {
         name: "Content-Security-Policy",
-        value: domain.includes('google') ? "default-src 'self'" : null,
+        value: isPopularSite ? "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:;" : null,
         description: "Controls resources the user agent is allowed to load",
       },
       {
         name: "X-Frame-Options",
-        value: domain.includes('facebook') ? "DENY" : "SAMEORIGIN",
+        value: isPopularSite ? "DENY" : (isSecure ? "SAMEORIGIN" : null),
         description: "Prevents clickjacking attacks",
       },
       {
         name: "X-Content-Type-Options",
-        value: isSecure ? "nosniff" : null,
+        value: isSecure || isPopularSite ? "nosniff" : null,
         description: "Prevents MIME type sniffing",
+      },
+      {
+        name: "Referrer-Policy",
+        value: isPopularSite ? "strict-origin-when-cross-origin" : (isSecure ? "no-referrer-when-downgrade" : null),
+        description: "Controls how much referrer information should be included with requests",
       },
     ],
     technologies: [
-      { name: "Nginx", category: "server" as const, version: "1.18.0" },
-      { name: "React", category: "frontend" as const, version: "18.2.0" },
-      ...(domain.includes('cloudflare') ? [{ name: "Cloudflare", category: "security" as const }] : []),
-      { name: "TypeScript", category: "frontend" as const, version: "4.9.5" },
-      { name: domain.includes('google') ? "Google Cloud" : "Let's Encrypt", category: "security" as const },
-      { name: "Webpack", category: "frontend" as const, version: "5.75.0" },
-      { name: "Node.js", category: "server" as const, version: "16.x" },
+      { name: isPopularSite ? "Nginx" : "Apache", category: "server", version: "1.18.0" },
+      { name: "React", category: "frontend", version: "18.2.0" },
+      ...(domain.includes('cloudflare') ? [{ name: "Cloudflare", category: "security" }] : []),
+      { name: "TypeScript", category: "frontend", version: "4.9.5" },
+      { name: isPopularSite ? "AWS" : "Digital Ocean", category: "server" },
+      ...(isSecure ? [{ name: "Let's Encrypt", category: "security" }] : []),
+      { name: isPopularSite ? "GraphQL" : "REST API", category: "frontend" },
     ],
     certificate: {
       valid: isSecure,
-      issuer: domain.includes('google') ? "Google Trust Services" : "Let's Encrypt Authority X3",
-      expirationDate: "2024-06-15",
-      daysUntilExpiration: isSecure ? 120 : 15,
+      issuer: isPopularSite ? 
+        "DigiCert Global Root CA" : 
+        "Let's Encrypt Authority X3",
+      expirationDate: new Date(Date.now() + (randomDays * 24 * 60 * 60 * 1000)).toLocaleDateString(),
+      daysUntilExpiration: randomDays,
       protocol: isSecure ? "TLS 1.3" : "TLS 1.2",
-      strength: isSecure ? "strong" as const : "moderate" as const,
+      strength: isPopularSite ? "strong" : (isSecure ? "moderate" : "weak"),
     },
     cookies: [
       {
         name: "session",
         secure: isSecure,
-        httpOnly: true,
-        sameSite: "Strict" as const,
-        expires: "2024-12-31",
+        httpOnly: isPopularSite,
+        sameSite: isPopularSite ? "Strict" : (isSecure ? "Lax" : null),
+        expires: new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)).toLocaleDateString(),
       },
       {
         name: "preferences",
-        secure: domain.includes('google'),
-        httpOnly: false,
-        sameSite: domain.includes('facebook') ? "Strict" as const : null,
+        secure: isPopularSite || isSecure,
+        httpOnly: isPopularSite,
+        sameSite: isPopularSite ? "Strict" : (isSecure ? "Lax" : null),
         expires: null,
+      },
+      {
+        name: "analytics",
+        secure: isSecure,
+        httpOnly: false,
+        sameSite: isSecure ? "Lax" : null,
+        expires: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString(),
       },
     ],
   };
