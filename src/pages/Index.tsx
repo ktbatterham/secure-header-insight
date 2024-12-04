@@ -7,10 +7,12 @@ import { CertificateAnalysis } from "@/components/CertificateAnalysis";
 import { CookieAnalysis } from "@/components/CookieAnalysis";
 import { toast } from "sonner";
 
+const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+
 const generateSecurityData = async (url: string) => {
   try {
-    // Use a CORS proxy to fetch headers
-    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+    // Use the CORS proxy to fetch headers
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(url)}`;
     const response = await fetch(proxyUrl, {
       method: 'HEAD',
       headers: {
